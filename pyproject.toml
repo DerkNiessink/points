@@ -1,0 +1,24 @@
+[project]
+name = "points"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Derk Niessink", email = "derk@niessink.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib>=3.10.7",
+    "numba>=0.59.0",
+    "numcodecs>=0.16.3",
+    "numpy>=2.3.4",
+    "tqdm>=4.67.1",
+    "zarr>=3.1.3",
+]
+
+[project.scripts]
+points = "points.main:main"
+
+[build-system]
+requires = ["uv_build>=0.9.1,<0.10.0"]
+build-backend = "uv_build"
