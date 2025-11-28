@@ -5,15 +5,18 @@ import zarr
 class TrajectoryWriter:
     """Zarr writer for streaming simulation data of particle trajectories"""
 
-    def __init__(self, filename: str, n_particles: int):
+    def __init__(self, filename: str, masses: np.ndarray):
         self.root = zarr.open_group(filename, mode="w")
-        self.n_particles = n_particles
+        self.n_particles = len(masses)
 
         self.positions = self.root.create_array(
-            "positions",
-            shape=(0, n_particles, 3),
-            dtype="float32",
+            "positions", shape=(0, self.n_particles, 3), dtype="float32"
         )
+
+        self.masses = self.root.create_array(
+            "masses", shape=(self.n_particles,), dtype="float32"
+        )
+        self.masses[:] = masses
 
     def write_step(self, positions: np.ndarray):
         """Write a single time step of positions"""
@@ -38,3 +41,7 @@ class TrajectoryReader:
     def n_particles(self) -> int:
         """Return the number of particles stored."""
         return self.positions.shape[1]
+
+    def masses(self) -> np.ndarray:
+        """Return the masses of the particles."""
+        return np.asarray(self.root["masses"])

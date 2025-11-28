@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.animation import FuncAnimation, PillowWriter
 from tqdm import tqdm
 
@@ -10,7 +11,6 @@ def animate_trajectories(
     save_as: str,
     interval: int = 50,
     figsize: tuple = (10, 10),
-    point_size: int = 10,
 ):
     """Create an animated visualization of particle trajectories.
 
@@ -19,7 +19,6 @@ def animate_trajectories(
         save_as: Filename to save animation (e.g. 'output.gif')
         interval: Milliseconds between frames
         figsize: Figure size (width, height)
-        point_size: Size of particle markers
     """
 
     reader = TrajectoryReader(filename)
@@ -27,6 +26,11 @@ def animate_trajectories(
     n_particles = reader.n_particles()
 
     print(f"Loaded {n_particles} particles with {n_steps} time steps")
+
+    # Calculate marker sizes from masses
+    # Using square root to dampen the huge range of masses
+    masses = reader.masses()
+    marker_sizes = 2 + np.sqrt(masses) * 5
 
     # Set up the figure
     fig = plt.figure(figsize=figsize)
@@ -47,18 +51,15 @@ def animate_trajectories(
         initial_positions[:, 0],
         initial_positions[:, 1],
         initial_positions[:, 2],
-        s=point_size,
+        s=marker_sizes,
         alpha=0.8,
     )
-
-    # Time text
-    time_text = ax.text2D(0.05, 0.95, "", transform=ax.transAxes)
 
     def update(frame):
         """Update animation frame."""
         positions = reader.positions_at_time(frame)
         scatter._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
-        return scatter, time_text
+        return (scatter,)
 
     # Create animation
     anim = FuncAnimation(fig, update, frames=n_steps, interval=interval, blit=False)
@@ -85,5 +86,4 @@ if __name__ == "__main__":
         filename="trajectory.zarr",
         save_as="orbit.gif",
         interval=70,
-        point_size=2,
     )

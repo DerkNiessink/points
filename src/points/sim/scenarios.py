@@ -1,9 +1,9 @@
 import numpy as np
 
-from points.models.particles import ParticleSystem
+from points.models.particles import Particles
 
 
-class RingedSystem(ParticleSystem):
+class RingedSystem(Particles):
     """A particle system with a central star, a ringed planet, and rings."""
 
     def __init__(self, G=1.0):
