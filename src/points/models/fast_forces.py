@@ -46,6 +46,22 @@ def _calculate_accelerations_numba(
 
 
 @jit(nopython=True, fastmath=True)
+def update_center_of_mass(
+    com: np.ndarray,
+    positions: np.ndarray,
+    masses: np.ndarray,
+) -> None:
+    """Update center of mass vector in place."""
+    total_mass = np.sum(masses)
+    com[:] = 0
+    for i in range(len(masses)):
+        com[0] += masses[i] * positions[i, 0]
+        com[1] += masses[i] * positions[i, 1]
+        com[2] += masses[i] * positions[i, 2]
+    com /= total_mass
+
+
+@jit(nopython=True, fastmath=True)
 def update_positions_rk4(
     positions: np.ndarray,
     velocities: np.ndarray,
@@ -54,7 +70,7 @@ def update_positions_rk4(
     softening: float,
     dt: float,
 ):
-    """RK4 integration for N-body simulation."""
+    """Update positions and velocities using RK4 integration."""
     n = positions.shape[0]
     dt_half = dt * 0.5
     dt_sixth = dt / 6.0

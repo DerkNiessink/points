@@ -1,6 +1,6 @@
 import numpy as np
 
-from points.models.fast_forces import update_positions_rk4
+from points.models.fast_forces import update_center_of_mass, update_positions_rk4
 
 
 class Particles:
@@ -12,6 +12,7 @@ class Particles:
         self.positions = np.empty((0, 3), dtype=np.float32)
         self.velocities = np.empty((0, 3), dtype=np.float32)
         self.masses = np.empty(0, dtype=np.float32)
+        self.com = np.zeros(3, dtype=np.float32)
 
     def add_particle(
         self,
@@ -34,6 +35,4 @@ class Particles:
             softening,
             dt,
         )
-
-    def __len__(self):
-        return len(self.masses)
+        update_center_of_mass(self.com, self.positions, self.masses)

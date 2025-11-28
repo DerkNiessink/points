@@ -12,72 +12,61 @@ def animate_trajectories(
     interval: int = 50,
     figsize: tuple = (10, 10),
 ):
-    """Create an animated visualization of particle trajectories.
-
-    Args:
-        filename: Path to the zarr file with trajectory data
-        save_as: Filename to save animation (e.g. 'output.gif')
-        interval: Milliseconds between frames
-        figsize: Figure size (width, height)
-    """
+    """Create an animated visualization of particle trajectories."""
 
     reader = TrajectoryReader(filename)
-    n_steps = reader.time_steps()
-    n_particles = reader.n_particles()
+    print(
+        f"Loaded {reader.n_particles()} particles with {reader.time_steps()} time steps"
+    )
 
-    print(f"Loaded {n_particles} particles with {n_steps} time steps")
+    # Calculate marker sizes from masses using square root to dampen range
+    marker_sizes = 2 + np.sqrt(reader.masses()) * 3
 
-    # Calculate marker sizes from masses
-    # Using square root to dampen the huge range of masses
-    masses = reader.masses()
-    marker_sizes = 2 + np.sqrt(masses) * 5
-
-    # Set up the figure
-    fig = plt.figure(figsize=figsize)
-    ax = fig.add_subplot(111, projection="3d")
-
-    # Hide axes and set background to black
+    # Set up figure with black background and hidden axes
+    fig, ax = plt.subplots(figsize=figsize, subplot_kw={"projection": "3d"})
     fig.patch.set_facecolor("black")
     ax.set_facecolor("black")
     ax.set_axis_off()
+    ax.set(xlim=(-12, 12), ylim=(-12, 12), zlim=(-3, 3))
 
-    ax.set_xlim(-12, 12)
-    ax.set_ylim(-12, 12)
-    ax.set_zlim(-3, 3)
+    # Initialize scatter plot
+    pos = reader.positions_at_time(0)
+    scatter = ax.scatter(pos[:, 0], pos[:, 1], pos[:, 2], s=marker_sizes, alpha=0.8)
 
-    # Initialize scatter plot with first frame
-    initial_positions = reader.positions_at_time(0)
-    scatter = ax.scatter(
-        initial_positions[:, 0],
-        initial_positions[:, 1],
-        initial_positions[:, 2],
-        s=marker_sizes,
-        alpha=0.8,
-    )
+    # Get center of mass trajectory for re-centering
+    com_data = reader.centers_of_mass()
 
     def update(frame):
-        """Update animation frame."""
-        positions = reader.positions_at_time(frame)
-        scatter._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
+        pos = reader.positions_at_time(frame)
+
+        # Shift positions so center of mass is at origin
+        # Handle edge case where frame might equal n_steps
+        com_frame = min(frame, len(com_data) - 1)
+        pos_centered = pos - com_data[com_frame]
+        scatter._offsets3d = (
+            pos_centered[:, 0],
+            pos_centered[:, 1],
+            pos_centered[:, 2],
+        )
+
         return (scatter,)
 
-    # Create animation
-    anim = FuncAnimation(fig, update, frames=n_steps, interval=interval, blit=False)
+    # Create and save animation with progress bar
+    anim = FuncAnimation(
+        fig, update, frames=reader.time_steps(), interval=interval, blit=False
+    )
 
-    # Save animation
     print(f"\nSaving animation to {save_as}...")
-    save_pbar = tqdm(total=n_steps, desc="Saving frames")
+    with tqdm(total=reader.time_steps(), desc="Saving frames") as pbar:
+        writer = PillowWriter(fps=1000 // interval)
+        anim.save(
+            save_as,
+            writer=writer,
+            progress_callback=lambda i, n: pbar.update(1) if i > pbar.n else None,
+            dpi=80,
+        )
 
-    def progress_callback(current_frame, total_frames):
-        save_pbar.n = current_frame
-        save_pbar.refresh()
-
-    fps = 1000 // interval
-    writer = PillowWriter(fps=fps)
-    anim.save(save_as, writer=writer, progress_callback=progress_callback, dpi=80)
-    save_pbar.close()
     plt.close(fig)
-
     print("Done!")
 
 

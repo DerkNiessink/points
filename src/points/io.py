@@ -18,9 +18,12 @@ class TrajectoryWriter:
         )
         self.masses[:] = masses
 
-    def write_step(self, positions: np.ndarray):
-        """Write a single time step of positions"""
+        self.com = self.root.create_array("com", shape=(0, 3), dtype="float32")
+
+    def write_step(self, positions: np.ndarray, com: np.ndarray):
+        """Write a single time step of positions and center of mass"""
         self.positions.append(positions[np.newaxis])
+        self.com.append(com[np.newaxis])
 
 
 class TrajectoryReader:
@@ -45,3 +48,7 @@ class TrajectoryReader:
     def masses(self) -> np.ndarray:
         """Return the masses of the particles."""
         return np.asarray(self.root["masses"])
+
+    def centers_of_mass(self) -> np.ndarray:
+        """Return an (n_time_steps, 3) array of center of mass positions."""
+        return np.asarray(self.root["com"])

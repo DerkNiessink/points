@@ -15,11 +15,11 @@ def main():
     for _ in tqdm(range(500)):
         model.update(dt=0.01)
         try:
-            writer.write_step(model.positions)
+            writer.write_step(model.positions, model.com)
         except PermissionError:
             print("PermissionError: Retrying in 0.1 seconds...")
             time.sleep(0.1)
-            writer.write_step(model.positions)
+            writer.write_step(model.positions, model.com)
 
 
 if __name__ == "__main__":
