@@ -3,16 +3,16 @@ import time
 from tqdm import tqdm
 
 from points.io import TrajectoryWriter
-from points.sim.scenarios import RingedSystem
+from points.models.scenarios import GalaxyCollision, RingedSystem
 
 
 def main():
     """Run a sample simulation and write trajectory to Zarr file."""
 
-    model = RingedSystem(G=1.0)
+    model = GalaxyCollision(G=1.0)
     writer = TrajectoryWriter("trajectory.zarr", masses=model.masses)
 
-    for _ in tqdm(range(500)):
+    for _ in tqdm(range(1000)):
         model.update(dt=0.01)
         try:
             writer.write_step(model.positions, model.com)
