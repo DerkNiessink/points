@@ -4,9 +4,10 @@ A Newtonian gravity simulation focused on handling large numbers of particles fo
 
 <table>
   <tr>
-    <td><img src="gifs/orbit4.gif" width="400"></td>
-    <td><img src="gifs/orbit5.gif" width="400"></td>
+    <td><img src="gifs/orbit4.gif" width="380"></td>
+    <td><img src="gifs/orbit5.gif" width="380"></td>
   </tr>
 </table>
+
 
 
